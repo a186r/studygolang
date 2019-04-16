@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,34 +27,50 @@ type Block struct {
 	PrevHash  string
 }
 
-// Blockchain is a series of validated Blocks
-var Blockchain []Block
-
 // Message takes incoming JSON payload for writing heart rate
 type Message struct {
 	BPM int
 }
 
+// Blockchain is a series of validated Blocks
+var Blockchain []Block
+
+var bcServer chan []Block
+
 var mutex = &sync.Mutex{}
 
 func main() {
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	go func() {
-		t := time.Now()
-		genesisBlock := Block{}
-		genesisBlock = Block{0, t.String(), 0, calculateHash(genesisBlock), ""}
-		spew.Dump(genesisBlock)
+	bcServer = make(chan []Block)
 
-		mutex.Lock()
-		Blockchain = append(Blockchain, genesisBlock)
-		mutex.Unlock()
-	}()
-	log.Fatal(run())
+	// 创建初始块
+	t := time.Now()
+	genesisBlock := Block{0, t.String(), 0, "", ""}
+	spew.Dump(generateBlock)
+	Blockchain = append(Blockchain, genesisBlock)
 
+	// 启动TCP服务
+	server, err := net.Listen("tcp", ":"+os.Getenv("ADDR"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer server.Close()
+
+	// 接受新的连接
+	for {
+		conn, err := server.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+		go handleeConn(conn)
+	}
 }
 
 // web server
