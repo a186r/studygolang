@@ -1,2 +1,1 @@
-# studygolang
-studygolang
+# 我该怎样才能成为一个go的开发者
