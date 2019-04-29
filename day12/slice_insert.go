@@ -27,7 +27,7 @@ func InsertStringSlice(slice, insertion []string，index int) []string {
 	at := copy(result,slice[:index])
 	// 然后将insertion拷贝到后面
 	at += copy(result[at:],insertion)
-	// 最后将
+	// 最后将slice后半段拼接起来
 	copy(result[at:],slice[index:])
 	return result
 }
