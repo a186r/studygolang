@@ -11,7 +11,7 @@ func squares() func() int {
 	}
 }
 
-func main(){
+func main() {
 	f := squares()
 	fmt.Println(f())
 	fmt.Println(f())
